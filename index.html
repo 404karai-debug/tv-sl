@@ -1,121 +1,627 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📺 TV IPTV</title>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  background: #0a0a0a;
+  background: #0d0d0d;
   color: #fff;
-  font-family: Arial;
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+}
+
+/* ===== LOGIN ===== */
+#loginScreen {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   height: 100vh;
+  background: linear-gradient(135deg, #0d0d0d, #1a0000);
 }
-.screen {
+.login-box {
   background: #1a1a1a;
-  border-radius: 12px;
-  padding: 40px;
-  width: 320px;
+  border: 2px solid #e50000;
+  border-radius: 16px;
+  padding: 50px 40px;
+  width: 360px;
   text-align: center;
-  border: 2px solid #333;
 }
-h1 { color: #e50000; margin-bottom: 30px; font-size: 24px; }
-input {
+.login-box h1 { color: #e50000; font-size: 28px; margin-bottom: 10px; }
+.login-box p { color: #aaa; margin-bottom: 30px; }
+.login-box input {
   width: 100%;
-  padding: 12px;
-  background: #333;
-  border: 2px solid #555;
+  padding: 14px;
+  background: #2a2a2a;
+  border: 2px solid #444;
   color: white;
   border-radius: 8px;
   font-size: 16px;
   margin-bottom: 15px;
   text-align: center;
 }
-input:focus { border-color: #e50000; outline: none; }
-button {
+.login-box input:focus { border-color: #e50000; outline: none; }
+.btn-red {
   width: 100%;
   padding: 14px;
-  margin: 8px 0;
   background: #e50000;
   color: white;
   border: none;
   border-radius: 8px;
   font-size: 16px;
   cursor: pointer;
+  transition: background 0.2s;
 }
-button:hover { background: #ff3333; }
-#error { color: #ff6666; margin-top: 10px; font-size: 14px; }
-.hidden { display: none; }
+.btn-red:hover { background: #ff2222; }
+#loginError { color: #ff6666; margin-top: 12px; font-size: 14px; min-height: 20px; }
+
+/* ===== APP ===== */
+#appScreen { display: none; flex-direction: column; height: 100vh; }
+
+/* NAV */
+#navbar {
+  display: flex;
+  align-items: center;
+  background: #111;
+  border-bottom: 2px solid #e50000;
+  padding: 0 20px;
+  height: 60px;
+  gap: 10px;
+}
+#navbar h2 { color: #e50000; margin-right: 20px; font-size: 20px; }
+.nav-btn {
+  padding: 8px 20px;
+  background: #222;
+  color: #ccc;
+  border: 2px solid #333;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.nav-btn:hover, .nav-btn.active {
+  background: #e50000;
+  color: white;
+  border-color: #e50000;
+}
+#userBadge {
+  margin-left: auto;
+  color: #aaa;
+  font-size: 13px;
+}
+#logoutBtn {
+  padding: 6px 14px;
+  background: #333;
+  color: #ccc;
+  border: 1px solid #555;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+#logoutBtn:hover { background: #555; }
+
+/* CONTENU */
+#content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* SIDEBAR CATÉGORIES */
+#sidebar {
+  width: 220px;
+  background: #111;
+  border-right: 1px solid #222;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+#sidebar h3 {
+  padding: 15px;
+  color: #e50000;
+  font-size: 14px;
+  border-bottom: 1px solid #222;
+  text-transform: uppercase;
+}
+.cat-item {
+  padding: 12px 15px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #bbb;
+  border-bottom: 1px solid #1a1a1a;
+  transition: all 0.15s;
+}
+.cat-item:hover, .cat-item.active {
+  background: #e50000;
+  color: white;
+}
+
+/* LISTE CHAINES/FILMS */
+#mainContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  background: #0d0d0d;
+}
+
+/* GRILLE */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 15px;
+}
+.card {
+  background: #1a1a1a;
+  border: 2px solid #222;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.card:hover { border-color: #e50000; transform: scale(1.03); }
+.card img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  background: #222;
+}
+.card .card-info {
+  padding: 8px;
+}
+.card .card-title {
+  font-size: 12px;
+  color: #ddd;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card .card-epg {
+  font-size: 11px;
+  color: #e50000;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.play-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -60%);
+  font-size: 30px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.card:hover .play-overlay { opacity: 1; }
+
+/* LISTE TV */
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #1a1a1a;
+  border: 1px solid #222;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.list-item:hover { border-color: #e50000; background: #221010; }
+.list-item img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #222;
+  flex-shrink: 0;
+}
+.list-item .info { flex: 1; overflow: hidden; }
+.list-item .name { font-size: 14px; color: #ddd; }
+.list-item .epg-now { font-size: 12px; color: #e50000; margin-top: 3px; }
+.list-item .epg-next { font-size: 11px; color: #777; margin-top: 2px; }
+.list-item .play-btn {
+  padding: 6px 14px;
+  background: #e50000;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* LECTEUR */
+#playerOverlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.95);
+  z-index: 1000;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+#playerOverlay.show { display: flex; }
+#playerTitle {
+  color: white;
+  font-size: 18px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+#playerEpg {
+  color: #e50000;
+  font-size: 14px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+#videoPlayer {
+  width: 90vw;
+  max-width: 1200px;
+  height: 56.25vw;
+  max-height: 675px;
+  background: #000;
+  border: 2px solid #e50000;
+  border-radius: 8px;
+}
+#closePlayer {
+  margin-top: 20px;
+  padding: 10px 30px;
+  background: #e50000;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* LOADING */
+#loading {
+  display: none;
+  text-align: center;
+  padding: 60px;
+  color: #aaa;
+  font-size: 18px;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #111; }
+::-webkit-scrollbar-thumb { background: #e50000; border-radius: 3px; }
 </style>
 </head>
 <body>
 
-<!-- ÉCRAN LOGIN -->
-<div class="screen" id="loginScreen">
-  <h1>📺 TV IPTV</h1>
-  <p style="margin-bottom:20px; color:#aaa;">Entrez votre code utilisateur</p>
-  <input type="text" id="codeInput" placeholder="Username..." />
-  <button onclick="valider()">✅ VALIDER</button>
-  <p id="error"></p>
+<!-- ===== LOGIN ===== -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h1>📺 TV IPTV</h1>
+    <p>Entrez votre nom d'utilisateur</p>
+    <input type="text" id="codeInput" placeholder="Username..." />
+    <button class="btn-red" onclick="valider()">✅ Se connecter</button>
+    <p id="loginError"></p>
+  </div>
 </div>
 
-<!-- ÉCRAN MENU -->
-<div class="screen hidden" id="menuScreen">
-  <h1>📺 MA TV</h1>
-  <p style="margin-bottom:20px; color:#aaa;" id="userInfo"></p>
-  <button onclick="ouvrirSection('live')">📺 TV Direct</button>
-  <button onclick="ouvrirSection('vod')">🎬 Films</button>
-  <button onclick="ouvrirSection('series')">🎭 Séries</button>
-  <button onclick="deconnecter()" style="background:#444; margin-top:20px;">🚪 Déconnexion</button>
+<!-- ===== APP ===== -->
+<div id="appScreen">
+
+  <!-- NAVBAR -->
+  <div id="navbar">
+    <h2>📺 IPTV</h2>
+    <button class="nav-btn active" onclick="switchSection('live')">📺 TV Direct</button>
+    <button class="nav-btn" onclick="switchSection('vod')">🎬 Films</button>
+    <button class="nav-btn" onclick="switchSection('series')">🎭 Séries</button>
+    <button class="nav-btn" onclick="switchSection('replay')">⏪ Replay</button>
+    <span id="userBadge"></span>
+    <button id="logoutBtn" onclick="deconnecter()">🚪 Déco</button>
+  </div>
+
+  <!-- CONTENU -->
+  <div id="content">
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+      <h3>Catégories</h3>
+      <div id="catList"></div>
+    </div>
+
+    <!-- MAIN -->
+    <div id="mainContent">
+      <div id="loading">⏳ Chargement...</div>
+      <div id="itemList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LECTEUR ===== -->
+<div id="playerOverlay">
+  <div id="playerTitle"></div>
+  <div id="playerEpg"></div>
+  <video id="videoPlayer" controls></video>
+  <button id="closePlayer" onclick="fermerLecteur()">✖ Fermer</button>
 </div>
 
 <script>
-let g_server = "usica.online";
-let g_user = "";
-let g_pass = "1593574628";
+const PROXY = "https://corsproxy.io/?";
+const SERVER = "usica.online";
+const PASS = "1593574628";
+let USER = "";
+let currentSection = "live";
+let currentCatId = null;
+let epgData = {};
+let hls = null;
 
+// ===== LOGIN =====
 function valider() {
   let code = document.getElementById('codeInput').value.trim();
-
   if (code.length < 3) {
-    document.getElementById('error').textContent = "❌ Code trop court !";
+    document.getElementById('loginError').textContent = "❌ Code trop court !";
     return;
   }
+  USER = code;
+  document.getElementById('loginError').textContent = "⏳ Connexion...";
 
-  g_user = code;
-
-  document.getElementById('error').textContent = "⏳ Connexion...";
-
-  let url = `https://corsproxy.io/?http://${g_server}/player_api.php?username=${g_user}&password=${g_pass}`;
-
+  let url = PROXY + encodeURIComponent(`http://${SERVER}/player_api.php?username=${USER}&password=${PASS}`);
+  
   fetch(url)
     .then(r => r.json())
     .then(data => {
       if (data.user_info && data.user_info.auth == 1) {
-        document.getElementById('userInfo').textContent = "👤 " + g_user;
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('menuScreen').classList.remove('hidden');
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appScreen').style.display = 'flex';
+        document.getElementById('userBadge').textContent = "👤 " + USER;
+        switchSection('live');
+        chargerEPG();
       } else {
-        document.getElementById('error').textContent = "❌ Code invalide !";
+        document.getElementById('loginError').textContent = "❌ Code invalide !";
       }
     })
     .catch(() => {
-      document.getElementById('error').textContent = "❌ Erreur connexion serveur !";
+      document.getElementById('loginError').textContent = "❌ Erreur serveur !";
     });
 }
 
-function ouvrirSection(type) {
-  alert("Section : " + type + "\nServeur : " + g_server + "\nUser : " + g_user);
+// ===== SWITCH SECTION =====
+function switchSection(type) {
+  currentSection = type;
+  currentCatId = null;
+
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  chargerCategories(type);
 }
 
-function deconnecter() {
-  document.getElementById('loginScreen').classList.remove('hidden');
-  document.getElementById('menuScreen').classList.add('hidden');
-  document.getElementById('codeInput').value = '';
-  document.getElementById('error').textContent = '';
+// ===== CATÉGORIES =====
+function chargerCategories(type) {
+  let action = type === 'live' ? 'get_live_categories' :
+               type === 'vod' ? 'get_vod_categories' :
+               type === 'series' ? 'get_series_categories' :
+               'get_live_categories';
+
+  let url = PROXY + encodeURIComponent(`http://${SERVER}/player_api.php?username=${USER}&password=${PASS}&action=${action}`);
+
+  document.getElementById('catList').innerHTML = '<div style="padding:15px;color:#777;">⏳ Chargement...</div>';
+  document.getElementById('itemList').innerHTML = '';
+
+  fetch(url)
+    .then(r => r.json())
+    .then(cats => {
+      let html = '';
+      cats.forEach(cat => {
+        html += `<div class="cat-item" onclick="chargerContenu('${cat.category_id}', '${escapeQ(cat.category_name)}')">${cat.category_name}</div>`;
+      });
+      document.getElementById('catList').innerHTML = html;
+    })
+    .catch(() => {
+      document.getElementById('catList').innerHTML = '<div style="padding:15px;color:#e50000;">❌ Erreur</div>';
+    });
 }
+
+// ===== CHARGER CONTENU =====
+function chargerContenu(catId, catName) {
+  currentCatId = catId;
+
+  document.querySelectorAll('.cat-item').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('itemList').innerHTML = '';
+
+  let action = currentSection === 'live' ? 'get_live_streams' :
+               currentSection === 'vod' ? 'get_vod_streams' :
+               currentSection === 'series' ? 'get_series' :
+               'get_live_streams';
+
+  let url = PROXY + encodeURIComponent(`http://${SERVER}/player_api.php?username=${USER}&password=${PASS}&action=${action}&category_id=${catId}`);
+
+  fetch(url)
+    .then(r => r.json())
+    .then(items => {
+      document.getElementById('loading').style.display = 'none';
+      afficherItems(items);
+    })
+    .catch(() => {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('itemList').innerHTML = '<p style="color:#e50000;padding:20px;">❌ Erreur chargement</p>';
+    });
+}
+
+// ===== AFFICHER ITEMS =====
+function afficherItems(items) {
+  let html = '';
+
+  if (currentSection === 'live') {
+    items.forEach(ch => {
+      let epg = epgData[ch.epg_channel_id] || {};
+      let now = epg.now || '';
+      let next = epg.next || '';
+      html += `
+        <div class="list-item" onclick="lancer('${ch.stream_id}', '${escapeQ(ch.name)}', 'live')">
+          <img src="${ch.stream_icon || ''}" onerror="this.src=''" alt="">
+          <div class="info">
+            <div class="name">${ch.name}</div>
+            <div class="epg-now">${now ? '▶ ' + now : ''}</div>
+            <div class="epg-next">${next ? '⏭ ' + next : ''}</div>
+          </div>
+          <button class="play-btn" onclick="event.stopPropagation();lancer('${ch.stream_id}', '${escapeQ(ch.name)}', 'live')">▶ Play</button>
+        </div>`;
+    });
+  } else if (currentSection === 'vod') {
+    html = '<div class="grid">';
+    items.forEach(film => {
+      html += `
+        <div class="card" onclick="lancer('${film.stream_id}', '${escapeQ(film.name)}', 'vod')">
+          <span class="play-overlay">▶️</span>
+          <img src="${film.stream_icon || ''}" onerror="this.src=''" alt="">
+          <div class="card-info">
+            <div class="card-title">${film.name}</div>
+            <div class="card-epg">${film.rating ? '⭐ ' + film.rating : ''}</div>
+          </div>
+        </div>`;
+    });
+    html += '</div>';
+  } else if (currentSection === 'series') {
+    html = '<div class="grid">';
+    items.forEach(serie => {
+      html += `
+        <div class="card" onclick="ouvrirSerie('${serie.series_id}', '${escapeQ(serie.name)}')">
+          <span class="play-overlay">▶️</span>
+          <img src="${serie.cover || ''}" onerror="this.src=''" alt="">
+          <div class="card-info">
+            <div class="card-title">${serie.name}</div>
+            <div class="card-epg">${serie.rating ? '⭐ ' + serie.rating : ''}</div>
+          </div>
+        </div>`;
+    });
+    html += '</div>';
+  }
+
+  document.getElementById('itemList').innerHTML = html;
+}
+
+// ===== OUVRIR SÉRIE =====
+function ouvrirSerie(serieId, serieName) {
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('itemList').innerHTML = '';
+
+  let url = PROXY + encodeURIComponent(`http://${SERVER}/player_api.php?username=${USER}&password=${PASS}&action=get_series_info&series_id=${serieId}`);
+
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('loading').style.display = 'none';
+      let html = `<h2 style="margin-bottom:20px;color:#e50000;">🎭 ${serieName}</h2>`;
+      
+      if (data.episodes) {
+        Object.keys(data.episodes).forEach(season => {
+          html += `<h3 style="margin:15px 0 10px;color:#aaa;">📁 Saison ${season}</h3>`;
+          data.episodes[season].forEach(ep => {
+            html += `
+              <div class="list-item" onclick="lancer('${ep.id}', '${escapeQ(serieName + ' - S' + season + 'E' + ep.episode_num)}', 'series')">
+                <div class="info">
+                  <div class="name">E${ep.episode_num} - ${ep.title || 'Episode ' + ep.episode_num}</div>
+                </div>
+                <button class="play-btn" onclick="event.stopPropagation();lancer('${ep.id}', '${escapeQ(serieName)}', 'series')">▶ Play</button>
+              </div>`;
+          });
+        });
+      }
+      document.getElementById('itemList').innerHTML = html;
+    })
+    .catch(() => {
+      document.getElementById('loading').style.display = 'none';
+    });
+}
+
+// ===== LANCER LECTEUR =====
+function lancer(id, name, type) {
+  let url = '';
+  if (type === 'live') {
+    url = `http://${SERVER}/${USER}/${PASS}/${id}`;
+  } else if (type === 'vod') {
+    url = `http://${SERVER}/movie/${USER}/${PASS}/${id}.mp4`;
+  } else if (type === 'series') {
+    url = `http://${SERVER}/series/${USER}/${PASS}/${id}.mp4`;
+  }
+
+  document.getElementById('playerTitle').textContent = "📺 " + name;
+  document.getElementById('playerEpg').textContent = epgData[id]?.now || '';
+  document.getElementById('playerOverlay').classList.add('show');
+
+  let video = document.getElementById('videoPlayer');
+  
+  if (hls) { hls.destroy(); hls = null; }
+
+  if (Hls.isSupported()) {
+    hls = new Hls();
+    hls.loadSource(url);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = url;
+    video.play();
+  } else {
+    video.src = url;
+    video.play();
+  }
+}
+
+// ===== FERMER LECTEUR =====
+function fermerLecteur() {
+  let video = document.getElementById('videoPlayer');
+  video.pause();
+  video.src = '';
+  if (hls) { hls.destroy(); hls = null; }
+  document.getElementById('playerOverlay').classList.remove('show');
+}
+
+// ===== EPG =====
+function chargerEPG() {
+  let url = PROXY + encodeURIComponent(`http://${SERVER}/player_api.php?username=${USER}&password=${PASS}&action=get_simple_data_table&stream_id=epg`);
+  
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      if (data && data.epg_listings) {
+        let now = Date.now() / 1000;
+        data.epg_listings.forEach(e => {
+          if (e.start <= now && e.stop >= now) {
+            epgData[e.channel_id] = epgData[e.channel_id] || {};
+            epgData[e.channel_id].now = atob(e.title || '');
+          }
+        });
+      }
+    })
+    .catch(() => {});
+
+  // Rafraîchir EPG toutes les 5 minutes
+  setTimeout(chargerEPG, 5 * 60 * 1000);
+}
+
+// ===== DÉCONNEXION =====
+function deconnecter() {
+  USER = '';
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('codeInput').value = '';
+  document.getElementById('loginError').textContent = '';
+  fermerLecteur();
+}
+
+// ===== UTILS =====
+function escapeQ(str) {
+  return (str || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+
+// Enter pour login
+document.getElementById('codeInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') valider();
+});
 </script>
 
 </body>
