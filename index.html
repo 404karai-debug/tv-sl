@@ -3,45 +3,109 @@
 <head>
 <meta charset="UTF-8">
 <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  background: #000;
+  background: #0a0a0a;
   color: #fff;
   font-family: Arial;
-  text-align: center;
-  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
+.screen {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 40px;
+  width: 320px;
+  text-align: center;
+  border: 2px solid #333;
+}
+h1 { color: #e50000; margin-bottom: 30px; font-size: 24px; }
+input {
+  width: 100%;
+  padding: 12px;
+  background: #333;
+  border: 2px solid #555;
+  color: white;
+  border-radius: 8px;
+  font-size: 16px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+input:focus { border-color: #e50000; outline: none; }
 button {
+  width: 100%;
+  padding: 14px;
+  margin: 8px 0;
   background: #e50000;
   color: white;
   border: none;
-  padding: 15px 30px;
-  margin: 10px;
-  font-size: 18px;
-  cursor: pointer;
   border-radius: 8px;
-  width: 200px;
+  font-size: 16px;
+  cursor: pointer;
 }
-button:hover {
-  background: #ff3333;
-}
-h1 {
-  color: #e50000;
-}
+button:hover { background: #ff3333; }
+#error { color: #ff6666; margin-top: 10px; font-size: 14px; }
+.hidden { display: none; }
 </style>
 </head>
 <body>
-<h1>📺 MA TV IPTV</h1>
 
-<button onclick="jouer('TF1')">📺 TF1</button>
-<button onclick="jouer('M6')">📺 M6</button>
-<button onclick="jouer('France2')">📺 France 2</button>
-<button onclick="jouer('BFM')">📺 BFM TV</button>
+<!-- ÉCRAN LOGIN -->
+<div class="screen" id="loginScreen">
+  <h1>📺 TV IPTV</h1>
+  <p style="margin-bottom:20px; color:#aaa;">Entrez votre code IPTV</p>
+  <input type="text" id="codeInput" placeholder="CODE IPTV..." />
+  <button onclick="valider()">✅ VALIDER</button>
+  <p id="error"></p>
+</div>
 
-<p id="status">Choisir une chaîne...</p>
+<!-- ÉCRAN MENU -->
+<div class="screen hidden" id="menuScreen">
+  <h1>📺 MA TV</h1>
+  <p style="margin-bottom:20px; color:#aaa;" id="userInfo"></p>
+  <button onclick="ouvrirSection('live')">📺 TV Direct</button>
+  <button onclick="ouvrirSection('vod')">🎬 Films</button>
+  <button onclick="ouvrirSection('series')">🎭 Séries</button>
+  <button onclick="deconnecter()" style="background:#444; margin-top:20px;">🚪 Déconnexion</button>
+</div>
 
 <script>
-function jouer(chaine) {
-  document.getElementById('status').textContent = '▶ Lecture : ' + chaine;
+let g_server = "";
+let g_user = "";
+let g_pass = "";
+
+function valider() {
+  let code = document.getElementById('codeInput').value.trim();
+  
+  // Format attendu: http://serveur:port/username/password
+  let match = code.match(/https?:\/\/([^:\/]+)(?::(\d+))?\/([^\/]+)\/([^\/\s]+)/);
+  
+  if (!match) {
+    document.getElementById('error').textContent = "❌ Format invalide !";
+    return;
+  }
+
+  g_server = match[1] + (match[2] ? ':' + match[2] : '');
+  g_user = match[3];
+  g_pass = match[4];
+
+  document.getElementById('userInfo').textContent = "👤 " + g_user;
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('menuScreen').classList.remove('hidden');
+}
+
+function ouvrirSection(type) {
+  alert("Section : " + type + "\nServeur : " + g_server + "\nUser : " + g_user);
+  // Ici on ajoutera la liste des chaînes/films/séries
+}
+
+function deconnecter() {
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('menuScreen').classList.add('hidden');
+  document.getElementById('codeInput').value = '';
+  document.getElementById('error').textContent = '';
 }
 </script>
 
