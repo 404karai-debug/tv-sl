@@ -3,605 +3,531 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📺 TV IPTV</title>
+<title>📺 IPTV</title>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background: #0d0d0d;
-  color: #fff;
-  font-family: Arial, sans-serif;
-  min-height: 100vh;
-}
+body { background: #0d0d0d; color: #fff; font-family: Arial, sans-serif; }
 
-/* ===== LOGIN ===== */
 #loginScreen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
   height: 100vh;
   background: linear-gradient(135deg, #0d0d0d, #1a0000);
 }
 .login-box {
-  background: #1a1a1a;
-  border: 2px solid #e50000;
-  border-radius: 16px;
-  padding: 50px 40px;
-  width: 360px;
-  text-align: center;
+  background: #1a1a1a; border: 2px solid #e50000;
+  border-radius: 16px; padding: 50px 40px;
+  width: 360px; text-align: center;
 }
 .login-box h1 { color: #e50000; font-size: 28px; margin-bottom: 10px; }
-.login-box p { color: #aaa; margin-bottom: 30px; }
+.login-box p { color: #aaa; margin-bottom: 30px; font-size: 14px; }
 .login-box input {
-  width: 100%;
-  padding: 14px;
-  background: #2a2a2a;
-  border: 2px solid #444;
-  color: white;
-  border-radius: 8px;
-  font-size: 16px;
-  margin-bottom: 15px;
-  text-align: center;
+  width: 100%; padding: 14px;
+  background: #2a2a2a; border: 2px solid #444;
+  color: white; border-radius: 8px;
+  font-size: 16px; margin-bottom: 15px; text-align: center;
 }
 .login-box input:focus { border-color: #e50000; outline: none; }
 .btn-red {
-  width: 100%;
-  padding: 14px;
-  background: #e50000;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background 0.2s;
+  width: 100%; padding: 14px; background: #e50000;
+  color: white; border: none; border-radius: 8px;
+  font-size: 16px; cursor: pointer;
 }
 .btn-red:hover { background: #ff2222; }
 #loginError { color: #ff6666; margin-top: 12px; font-size: 14px; min-height: 20px; }
 
-/* ===== APP ===== */
-#appScreen { display: none; flex-direction: column; height: 100vh; }
+#appScreen { display: none; flex-direction: column; height: 100vh; overflow: hidden; }
 
-/* NAV */
 #navbar {
-  display: flex;
-  align-items: center;
-  background: #111;
-  border-bottom: 2px solid #e50000;
-  padding: 0 20px;
-  height: 60px;
-  gap: 10px;
+  display: flex; align-items: center; gap: 10px;
+  background: #111; border-bottom: 2px solid #e50000;
+  padding: 10px 20px; flex-shrink: 0;
 }
-#navbar h2 { color: #e50000; margin-right: 20px; font-size: 20px; }
+#navbar h2 { color: #e50000; margin-right: 20px; }
 .nav-btn {
-  padding: 8px 20px;
-  background: #222;
-  color: #ccc;
-  border: 2px solid #333;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
+  padding: 8px 20px; border-radius: 20px;
+  border: 2px solid #333; background: transparent;
+  color: #aaa; cursor: pointer; font-size: 14px;
 }
-.nav-btn:hover, .nav-btn.active {
-  background: #e50000;
-  color: white;
-  border-color: #e50000;
-}
-#userBadge {
-  margin-left: auto;
-  color: #aaa;
-  font-size: 13px;
-}
-#logoutBtn {
-  padding: 6px 14px;
-  background: #333;
-  color: #ccc;
-  border: 1px solid #555;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-}
-#logoutBtn:hover { background: #555; }
-
-/* CONTENU */
-#content {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
+.nav-btn.active, .nav-btn:hover { background: #e50000; border-color: #e50000; color: white; }
+#btnDeconnect {
+  margin-left: auto; padding: 8px 16px;
+  background: #333; border: none; color: #aaa;
+  border-radius: 8px; cursor: pointer;
 }
 
-/* SIDEBAR CATÉGORIES */
+#mainContent { display: flex; flex: 1; overflow: hidden; }
+
 #sidebar {
-  width: 220px;
-  background: #111;
+  width: 220px; background: #111;
   border-right: 1px solid #222;
-  overflow-y: auto;
-  flex-shrink: 0;
+  overflow-y: auto; flex-shrink: 0;
 }
-#sidebar h3 {
-  padding: 15px;
-  color: #e50000;
-  font-size: 14px;
-  border-bottom: 1px solid #222;
-  text-transform: uppercase;
-}
+#sidebar h3 { padding: 15px; color: #e50000; font-size: 13px; text-transform: uppercase; }
 .cat-item {
-  padding: 12px 15px;
-  cursor: pointer;
-  font-size: 13px;
-  color: #bbb;
+  padding: 12px 15px; cursor: pointer;
   border-bottom: 1px solid #1a1a1a;
-  transition: all 0.15s;
+  font-size: 14px; color: #ccc;
 }
-.cat-item:hover, .cat-item.active {
-  background: #e50000;
-  color: white;
-}
+.cat-item:hover, .cat-item.active { background: #e50000; color: white; }
 
-/* LISTE CHAINES/FILMS */
-#mainContent {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-  background: #0d0d0d;
-}
+#contentArea { flex: 1; overflow-y: auto; padding: 20px; }
 
-/* GRILLE */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 15px;
-}
+/* GRILLE FILMS/SERIES */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
 .card {
-  background: #1a1a1a;
-  border: 2px solid #222;
-  border-radius: 10px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
+  background: #1a1a1a; border-radius: 10px;
+  overflow: hidden; cursor: pointer;
+  transition: transform 0.2s;
 }
-.card:hover { border-color: #e50000; transform: scale(1.03); }
-.card img {
-  width: 100%;
-  height: 100px;
-  object-fit: cover;
-  background: #222;
+.card:hover { transform: scale(1.04); }
+.card img { width: 100%; height: 220px; object-fit: cover; background: #222; }
+.card-info { padding: 10px; }
+.card-title { font-size: 13px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-meta { font-size: 11px; color: #aaa; margin-top: 4px; }
+.card-play {
+  width: 100%; margin-top: 8px; padding: 8px;
+  background: #e50000; color: white; border: none;
+  border-radius: 6px; cursor: pointer; font-size: 13px;
 }
-.card .card-info {
-  padding: 8px;
-}
-.card .card-title {
-  font-size: 12px;
-  color: #ddd;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.card .card-epg {
-  font-size: 11px;
-  color: #e50000;
-  margin-top: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.play-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -60%);
-  font-size: 30px;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.card:hover .play-overlay { opacity: 1; }
 
 /* LISTE TV */
+.list { display: flex; flex-direction: column; gap: 8px; }
 .list-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #1a1a1a;
-  border: 1px solid #222;
-  border-radius: 8px;
-  padding: 10px;
-  margin-bottom: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
+  display: flex; align-items: center; gap: 15px;
+  background: #1a1a1a; border-radius: 10px;
+  padding: 12px 15px; cursor: pointer;
 }
-.list-item:hover { border-color: #e50000; background: #221010; }
-.list-item img {
-  width: 50px;
-  height: 50px;
-  object-fit: contain;
-  border-radius: 6px;
-  background: #222;
-  flex-shrink: 0;
-}
-.list-item .info { flex: 1; overflow: hidden; }
-.list-item .name { font-size: 14px; color: #ddd; }
-.list-item .epg-now { font-size: 12px; color: #e50000; margin-top: 3px; }
-.list-item .epg-next { font-size: 11px; color: #777; margin-top: 2px; }
-.list-item .play-btn {
-  padding: 6px 14px;
-  background: #e50000;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
+.list-item:hover { background: #2a2a2a; }
+.list-item img { width: 50px; height: 50px; object-fit: contain; border-radius: 6px; background: #222; }
+.list-item-info { flex: 1; }
+.list-item-name { font-size: 15px; font-weight: bold; }
+.list-item-epg { font-size: 12px; color: #e50000; margin-top: 3px; }
+.list-item-play {
+  padding: 8px 16px; background: #e50000;
+  color: white; border: none; border-radius: 8px;
+  cursor: pointer; font-size: 13px;
 }
 
 /* LECTEUR */
 #playerOverlay {
-  display: none;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  display: none; position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.95);
-  z-index: 1000;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  z-index: 1000; flex-direction: column;
+  align-items: center; justify-content: center;
 }
 #playerOverlay.show { display: flex; }
 #playerTitle {
-  color: white;
-  font-size: 18px;
-  margin-bottom: 15px;
-  text-align: center;
+  color: white; font-size: 20px;
+  margin-bottom: 15px; text-align: center;
 }
-#playerEpg {
-  color: #e50000;
-  font-size: 14px;
-  margin-bottom: 15px;
-  text-align: center;
+#playerVideo {
+  width: 90vw; max-width: 1200px;
+  height: 55vw; max-height: 675px;
+  background: #000; border-radius: 10px;
 }
-#videoPlayer {
-  width: 90vw;
-  max-width: 1200px;
-  height: 56.25vw;
-  max-height: 675px;
-  background: #000;
-  border: 2px solid #e50000;
-  border-radius: 8px;
-}
-#closePlayer {
-  margin-top: 20px;
-  padding: 10px 30px;
-  background: #e50000;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
+#playerClose {
+  margin-top: 15px; padding: 10px 30px;
+  background: #e50000; color: white;
+  border: none; border-radius: 8px;
+  font-size: 16px; cursor: pointer;
 }
 
-/* LOADING */
-#loading {
-  display: none;
-  text-align: center;
-  padding: 60px;
-  color: #aaa;
-  font-size: 18px;
+/* MODAL SÉRIE */
+#serieModal {
+  display: none; position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 999; overflow-y: auto;
+  padding: 40px 20px;
+}
+#serieModal.show { display: block; }
+#serieModalContent {
+  max-width: 800px; margin: 0 auto;
+  background: #1a1a1a; border-radius: 16px;
+  padding: 30px;
+}
+#serieModalContent h2 { color: #e50000; margin-bottom: 20px; }
+.season-btn {
+  padding: 8px 16px; margin: 4px;
+  background: #333; border: none; color: white;
+  border-radius: 6px; cursor: pointer;
+}
+.season-btn.active { background: #e50000; }
+.episode-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px; background: #222; border-radius: 8px; margin: 6px 0;
+}
+.episode-play {
+  padding: 6px 14px; background: #e50000;
+  color: white; border: none; border-radius: 6px; cursor: pointer;
+}
+#serieClose {
+  margin-top: 20px; padding: 10px 30px;
+  background: #555; color: white; border: none;
+  border-radius: 8px; cursor: pointer; font-size: 16px;
 }
 
-/* SCROLLBAR */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #111; }
-::-webkit-scrollbar-thumb { background: #e50000; border-radius: 3px; }
+#loader {
+  text-align: center; padding: 60px;
+  color: #aaa; font-size: 18px;
+}
 </style>
 </head>
 <body>
 
-<!-- ===== LOGIN ===== -->
+<!-- LOGIN -->
 <div id="loginScreen">
   <div class="login-box">
-    <h1>📺 TV IPTV</h1>
-    <p>Entrez votre nom d'utilisateur</p>
-    <input type="text" id="codeInput" placeholder="Username..." />
-    <button class="btn-red" onclick="valider()">✅ Se connecter</button>
-    <p id="loginError"></p>
+    <h1>📺 IPTV</h1>
+    <p>Entrez votre code d'accès</p>
+    <input type="text" id="codeInput" placeholder="Votre username..." autocomplete="off" />
+    <button class="btn-red" onclick="valider()">▶ Connexion</button>
+    <div id="loginError"></div>
   </div>
 </div>
 
-<!-- ===== APP ===== -->
+<!-- APP -->
 <div id="appScreen">
-
-  <!-- NAVBAR -->
   <div id="navbar">
     <h2>📺 IPTV</h2>
-    <button class="nav-btn active" onclick="switchSection('live')">📺 TV Direct</button>
-    <button class="nav-btn" onclick="switchSection('vod')">🎬 Films</button>
-    <button class="nav-btn" onclick="switchSection('series')">🎭 Séries</button>
-    <button class="nav-btn" onclick="switchSection('replay')">⏪ Replay</button>
-    <span id="userBadge"></span>
-    <button id="logoutBtn" onclick="deconnecter()">🚪 Déco</button>
+    <button class="nav-btn active" onclick="setMode('tv')">📡 TV Direct</button>
+    <button class="nav-btn" onclick="setMode('films')">🎬 Films</button>
+    <button class="nav-btn" onclick="setMode('series')">📺 Séries</button>
+    <button id="btnDeconnect" onclick="deconnecter()">⏻ Déconnexion</button>
   </div>
-
-  <!-- CONTENU -->
-  <div id="content">
-    <!-- SIDEBAR -->
+  <div id="mainContent">
     <div id="sidebar">
-      <h3>Catégories</h3>
+      <h3>📂 Catégories</h3>
       <div id="catList"></div>
     </div>
-
-    <!-- MAIN -->
-    <div id="mainContent">
-      <div id="loading">⏳ Chargement...</div>
-      <div id="itemList"></div>
+    <div id="contentArea">
+      <div id="loader">⏳ Chargement...</div>
     </div>
   </div>
 </div>
 
-<!-- ===== LECTEUR ===== -->
+<!-- LECTEUR -->
 <div id="playerOverlay">
   <div id="playerTitle"></div>
-  <div id="playerEpg"></div>
-  <video id="videoPlayer" controls></video>
-  <button id="closePlayer" onclick="fermerLecteur()">✖ Fermer</button>
+  <video id="playerVideo" controls autoplay></video>
+  <button id="playerClose" onclick="fermerLecteur()">✖ Fermer</button>
+</div>
+
+<!-- MODAL SERIE -->
+<div id="serieModal">
+  <div id="serieModalContent">
+    <h2 id="serieTitre"></h2>
+    <div id="serieSaisons"></div>
+    <div id="serieEpisodes"></div>
+    <button id="serieClose" onclick="fermerSerie()">✖ Fermer</button>
+  </div>
 </div>
 
 <script>
-const PROXY = "https://corsproxy.io/?";
+// ===== CONFIG =====
 const SERVER = "usica.online";
+const PORT = "80";
 const PASS = "1593574628";
+const PROXY = "https://api.allorigins.win/raw?url=";
+
 let USER = "";
-let currentSection = "live";
-let currentCatId = null;
+let currentMode = "tv";
+let currentCat = "all";
 let epgData = {};
-let hls = null;
+let hlsPlayer = null;
 
 // ===== LOGIN =====
-function valider() {
+async function valider() {
   let code = document.getElementById('codeInput').value.trim();
-  if (code.length < 3) {
-    document.getElementById('loginError').textContent = "❌ Code trop court !";
+  if (code.length < 2) {
+    document.getElementById('loginError').textContent = "❌ Entrez votre username !";
     return;
   }
+
   USER = code;
   document.getElementById('loginError').textContent = "⏳ Connexion...";
 
-  let url = PROXY + encodeURIComponent(`http://${SERVER}/player_api.php?username=${USER}&password=${PASS}`);
-  
-  fetch(url)
-    .then(r => r.json())
-    .then(data => {
-      if (data.user_info && data.user_info.auth == 1) {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('appScreen').style.display = 'flex';
-        document.getElementById('userBadge').textContent = "👤 " + USER;
-        switchSection('live');
-        chargerEPG();
-      } else {
-        document.getElementById('loginError').textContent = "❌ Code invalide !";
-      }
-    })
-    .catch(() => {
-      document.getElementById('loginError').textContent = "❌ Erreur serveur !";
-    });
+  try {
+    let url = PROXY + encodeURIComponent(`http://${SERVER}:${PORT}/player_api.php?username=${USER}&password=${PASS}`);
+    let r = await fetch(url);
+    let data = await r.json();
+
+    console.log("Auth response:", data);
+
+    // Accepter si user_info présent (même auth=0 parfois)
+    if (data && data.user_info) {
+      lancerApp();
+    } else {
+      document.getElementById('loginError').textContent = "❌ Username incorrect !";
+      USER = "";
+    }
+  } catch(e) {
+    console.error(e);
+    document.getElementById('loginError').textContent = "❌ Erreur connexion : " + e.message;
+    USER = "";
+  }
 }
 
-// ===== SWITCH SECTION =====
-function switchSection(type) {
-  currentSection = type;
-  currentCatId = null;
+// ===== LANCER APP =====
+function lancerApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'flex';
+  setMode('tv');
+}
 
+// ===== NAVIGATION =====
+function setMode(mode) {
+  currentMode = mode;
+  currentCat = "all";
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   event.target.classList.add('active');
-
-  chargerCategories(type);
+  chargerCategories();
 }
 
 // ===== CATÉGORIES =====
-function chargerCategories(type) {
-  let action = type === 'live' ? 'get_live_categories' :
-               type === 'vod' ? 'get_vod_categories' :
-               type === 'series' ? 'get_series_categories' :
-               'get_live_categories';
+async function chargerCategories() {
+  document.getElementById('catList').innerHTML = '<div style="padding:15px;color:#aaa">⏳</div>';
 
-  let url = PROXY + encodeURIComponent(`http://${SERVER}/player_api.php?username=${USER}&password=${PASS}&action=${action}`);
+  let action = currentMode === 'tv' ? 'get_live_categories'
+             : currentMode === 'films' ? 'get_vod_categories'
+             : 'get_series_categories';
 
-  document.getElementById('catList').innerHTML = '<div style="padding:15px;color:#777;">⏳ Chargement...</div>';
-  document.getElementById('itemList').innerHTML = '';
+  try {
+    let url = PROXY + encodeURIComponent(`http://${SERVER}:${PORT}/player_api.php?username=${USER}&password=${PASS}&action=${action}`);
+    let r = await fetch(url);
+    let cats = await r.json();
 
-  fetch(url)
-    .then(r => r.json())
-    .then(cats => {
-      let html = '';
-      cats.forEach(cat => {
-        html += `<div class="cat-item" onclick="chargerContenu('${cat.category_id}', '${escapeQ(cat.category_name)}')">${cat.category_name}</div>`;
-      });
-      document.getElementById('catList').innerHTML = html;
-    })
-    .catch(() => {
-      document.getElementById('catList').innerHTML = '<div style="padding:15px;color:#e50000;">❌ Erreur</div>';
+    let html = `<div class="cat-item ${currentCat==='all'?'active':''}" onclick="selectCat('all', this)">📋 Toutes</div>`;
+    cats.forEach(c => {
+      html += `<div class="cat-item" onclick="selectCat('${c.category_id}', this)">${c.category_name}</div>`;
     });
+    document.getElementById('catList').innerHTML = html;
+
+    chargerContenu();
+
+    // EPG
+    if (currentMode === 'tv') chargerEPG();
+
+  } catch(e) {
+    document.getElementById('catList').innerHTML = '<div style="padding:15px;color:#f66">❌ Erreur</div>';
+  }
 }
 
-// ===== CHARGER CONTENU =====
-function chargerContenu(catId, catName) {
-  currentCatId = catId;
-
-  document.querySelectorAll('.cat-item').forEach(c => c.classList.remove('active'));
-  event.target.classList.add('active');
-
-  document.getElementById('loading').style.display = 'block';
-  document.getElementById('itemList').innerHTML = '';
-
-  let action = currentSection === 'live' ? 'get_live_streams' :
-               currentSection === 'vod' ? 'get_vod_streams' :
-               currentSection === 'series' ? 'get_series' :
-               'get_live_streams';
-
-  let url = PROXY + encodeURIComponent(`http://${SERVER}/player_api.php?username=${USER}&password=${PASS}&action=${action}&category_id=${catId}`);
-
-  fetch(url)
-    .then(r => r.json())
-    .then(items => {
-      document.getElementById('loading').style.display = 'none';
-      afficherItems(items);
-    })
-    .catch(() => {
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('itemList').innerHTML = '<p style="color:#e50000;padding:20px;">❌ Erreur chargement</p>';
-    });
+function selectCat(id, el) {
+  currentCat = id;
+  document.querySelectorAll('.cat-item').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  chargerContenu();
 }
 
-// ===== AFFICHER ITEMS =====
-function afficherItems(items) {
+// ===== CONTENU =====
+async function chargerContenu() {
+  document.getElementById('contentArea').innerHTML = '<div id="loader">⏳ Chargement...</div>';
+
+  let action = currentMode === 'tv' ? 'get_live_streams'
+             : currentMode === 'films' ? 'get_vod_streams'
+             : 'get_series';
+
+  let urlApi = `http://${SERVER}:${PORT}/player_api.php?username=${USER}&password=${PASS}&action=${action}`;
+  if (currentCat !== 'all') urlApi += `&category_id=${currentCat}`;
+
+  try {
+    let r = await fetch(PROXY + encodeURIComponent(urlApi));
+    let items = await r.json();
+
+    if (currentMode === 'tv') afficherTV(items);
+    else if (currentMode === 'films') afficherFilms(items);
+    else afficherSeries(items);
+
+  } catch(e) {
+    document.getElementById('contentArea').innerHTML = `<div style="padding:40px;color:#f66">❌ Erreur: ${e.message}</div>`;
+  }
+}
+
+// ===== TV =====
+function afficherTV(items) {
+  if (!items.length) { document.getElementById('contentArea').innerHTML = '<div style="padding:40px;color:#aaa">Aucune chaîne</div>'; return; }
+  let html = '<div class="list">';
+  items.forEach(ch => {
+    let epg = epgData[ch.epg_channel_id] ? `🔴 ${epgData[ch.epg_channel_id]}` : '';
+    html += `
+      <div class="list-item">
+        <img src="${ch.stream_icon}" onerror="this.src=''" alt="">
+        <div class="list-item-info">
+          <div class="list-item-name">${ch.name}</div>
+          <div class="list-item-epg">${epg}</div>
+        </div>
+        <button class="list-item-play" onclick="jouerLive(${ch.stream_id},'${escQ(ch.name)}')">▶ Play</button>
+      </div>`;
+  });
+  html += '</div>';
+  document.getElementById('contentArea').innerHTML = html;
+}
+
+// ===== FILMS =====
+function afficherFilms(items) {
+  if (!items.length) { document.getElementById('contentArea').innerHTML = '<div style="padding:40px;color:#aaa">Aucun film</div>'; return; }
+  let html = '<div class="grid">';
+  items.forEach(f => {
+    html += `
+      <div class="card">
+        <img src="${f.stream_icon}" onerror="this.style.height='60px'" alt="">
+        <div class="card-info">
+          <div class="card-title">${f.name}</div>
+          <div class="card-meta">⭐ ${f.rating || '?'} • ${f.added ? new Date(f.added*1000).getFullYear() : ''}</div>
+          <button class="card-play" onclick="jouerFilm(${f.stream_id},'${escQ(f.name)}')">▶ Play</button>
+        </div>
+      </div>`;
+  });
+  html += '</div>';
+  document.getElementById('contentArea').innerHTML = html;
+}
+
+// ===== SERIES =====
+function afficherSeries(items) {
+  if (!items.length) { document.getElementById('contentArea').innerHTML = '<div style="padding:40px;color:#aaa">Aucune série</div>'; return; }
+  let html = '<div class="grid">';
+  items.forEach(s => {
+    html += `
+      <div class="card">
+        <img src="${s.cover}" onerror="this.style.height='60px'" alt="">
+        <div class="card-info">
+          <div class="card-title">${s.name}</div>
+          <div class="card-meta">⭐ ${s.rating || '?'}</div>
+          <button class="card-play" onclick="ouvrirSerie(${s.series_id},'${escQ(s.name)}')">▶ Voir</button>
+        </div>
+      </div>`;
+  });
+  html += '</div>';
+  document.getElementById('contentArea').innerHTML = html;
+}
+
+// ===== JOUER LIVE =====
+function jouerLive(id, nom) {
+  let url = `http://${SERVER}:${PORT}/live/${USER}/${PASS}/${id}.m3u8`;
+  ouvrirLecteur(url, nom);
+}
+
+// ===== JOUER FILM =====
+function jouerFilm(id, nom) {
+  let url = `http://${SERVER}:${PORT}/movie/${USER}/${PASS}/${id}.mp4`;
+  ouvrirLecteur(url, nom);
+}
+
+// ===== SERIE - SAISONS/EPISODES =====
+async function ouvrirSerie(id, nom) {
+  document.getElementById('serieTitre').textContent = nom;
+  document.getElementById('serieSaisons').innerHTML = '⏳ Chargement...';
+  document.getElementById('serieEpisodes').innerHTML = '';
+  document.getElementById('serieModal').classList.add('show');
+
+  try {
+    let url = PROXY + encodeURIComponent(`http://${SERVER}:${PORT}/player_api.php?username=${USER}&password=${PASS}&action=get_series_info&series_id=${id}`);
+    let r = await fetch(url);
+    let data = await r.json();
+
+    let saisons = Object.keys(data.episodes || {});
+    if (!saisons.length) {
+      document.getElementById('serieSaisons').innerHTML = '<p style="color:#aaa">Aucun épisode</p>';
+      return;
+    }
+
+    let html = '<div style="margin-bottom:15px">';
+    saisons.forEach(s => {
+      html += `<button class="season-btn" onclick="afficherEpisodes(this, ${JSON.stringify(data.episodes[s])}, '${escQ(nom)}')">${s}</button>`;
+    });
+    html += '</div>';
+    document.getElementById('serieSaisons').innerHTML = html;
+
+    // Auto-charger saison 1
+    afficherEpisodes(
+      document.querySelector('.season-btn'),
+      data.episodes[saisons[0]],
+      nom
+    );
+
+  } catch(e) {
+    document.getElementById('serieSaisons').innerHTML = `<p style="color:#f66">❌ ${e.message}</p>`;
+  }
+}
+
+function afficherEpisodes(btn, episodes, nomSerie) {
+  document.querySelectorAll('.season-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
   let html = '';
-
-  if (currentSection === 'live') {
-    items.forEach(ch => {
-      let epg = epgData[ch.epg_channel_id] || {};
-      let now = epg.now || '';
-      let next = epg.next || '';
-      html += `
-        <div class="list-item" onclick="lancer('${ch.stream_id}', '${escapeQ(ch.name)}', 'live')">
-          <img src="${ch.stream_icon || ''}" onerror="this.src=''" alt="">
-          <div class="info">
-            <div class="name">${ch.name}</div>
-            <div class="epg-now">${now ? '▶ ' + now : ''}</div>
-            <div class="epg-next">${next ? '⏭ ' + next : ''}</div>
-          </div>
-          <button class="play-btn" onclick="event.stopPropagation();lancer('${ch.stream_id}', '${escapeQ(ch.name)}', 'live')">▶ Play</button>
-        </div>`;
-    });
-  } else if (currentSection === 'vod') {
-    html = '<div class="grid">';
-    items.forEach(film => {
-      html += `
-        <div class="card" onclick="lancer('${film.stream_id}', '${escapeQ(film.name)}', 'vod')">
-          <span class="play-overlay">▶️</span>
-          <img src="${film.stream_icon || ''}" onerror="this.src=''" alt="">
-          <div class="card-info">
-            <div class="card-title">${film.name}</div>
-            <div class="card-epg">${film.rating ? '⭐ ' + film.rating : ''}</div>
-          </div>
-        </div>`;
-    });
-    html += '</div>';
-  } else if (currentSection === 'series') {
-    html = '<div class="grid">';
-    items.forEach(serie => {
-      html += `
-        <div class="card" onclick="ouvrirSerie('${serie.series_id}', '${escapeQ(serie.name)}')">
-          <span class="play-overlay">▶️</span>
-          <img src="${serie.cover || ''}" onerror="this.src=''" alt="">
-          <div class="card-info">
-            <div class="card-title">${serie.name}</div>
-            <div class="card-epg">${serie.rating ? '⭐ ' + serie.rating : ''}</div>
-          </div>
-        </div>`;
-    });
-    html += '</div>';
-  }
-
-  document.getElementById('itemList').innerHTML = html;
+  episodes.forEach(ep => {
+    html += `
+      <div class="episode-item">
+        <span>S${ep.season}E${ep.episode_num} - ${ep.title || 'Episode '+ep.episode_num}</span>
+        <button class="episode-play" onclick="jouerEpisode(${ep.id},'${escQ(nomSerie+' S'+ep.season+'E'+ep.episode_num)}','${ep.container_extension}')">▶</button>
+      </div>`;
+  });
+  document.getElementById('serieEpisodes').innerHTML = html;
 }
 
-// ===== OUVRIR SÉRIE =====
-function ouvrirSerie(serieId, serieName) {
-  document.getElementById('loading').style.display = 'block';
-  document.getElementById('itemList').innerHTML = '';
-
-  let url = PROXY + encodeURIComponent(`http://${SERVER}/player_api.php?username=${USER}&password=${PASS}&action=get_series_info&series_id=${serieId}`);
-
-  fetch(url)
-    .then(r => r.json())
-    .then(data => {
-      document.getElementById('loading').style.display = 'none';
-      let html = `<h2 style="margin-bottom:20px;color:#e50000;">🎭 ${serieName}</h2>`;
-      
-      if (data.episodes) {
-        Object.keys(data.episodes).forEach(season => {
-          html += `<h3 style="margin:15px 0 10px;color:#aaa;">📁 Saison ${season}</h3>`;
-          data.episodes[season].forEach(ep => {
-            html += `
-              <div class="list-item" onclick="lancer('${ep.id}', '${escapeQ(serieName + ' - S' + season + 'E' + ep.episode_num)}', 'series')">
-                <div class="info">
-                  <div class="name">E${ep.episode_num} - ${ep.title || 'Episode ' + ep.episode_num}</div>
-                </div>
-                <button class="play-btn" onclick="event.stopPropagation();lancer('${ep.id}', '${escapeQ(serieName)}', 'series')">▶ Play</button>
-              </div>`;
-          });
-        });
-      }
-      document.getElementById('itemList').innerHTML = html;
-    })
-    .catch(() => {
-      document.getElementById('loading').style.display = 'none';
-    });
+function jouerEpisode(id, nom, ext) {
+  let url = `http://${SERVER}:${PORT}/series/${USER}/${PASS}/${id}.${ext||'mp4'}`;
+  fermerSerie();
+  ouvrirLecteur(url, nom);
 }
 
-// ===== LANCER LECTEUR =====
-function lancer(id, name, type) {
-  let url = '';
-  if (type === 'live') {
-    url = `http://${SERVER}/${USER}/${PASS}/${id}`;
-  } else if (type === 'vod') {
-    url = `http://${SERVER}/movie/${USER}/${PASS}/${id}.mp4`;
-  } else if (type === 'series') {
-    url = `http://${SERVER}/series/${USER}/${PASS}/${id}.mp4`;
-  }
-
-  document.getElementById('playerTitle').textContent = "📺 " + name;
-  document.getElementById('playerEpg').textContent = epgData[id]?.now || '';
+// ===== LECTEUR =====
+function ouvrirLecteur(url, titre) {
+  document.getElementById('playerTitle').textContent = titre;
   document.getElementById('playerOverlay').classList.add('show');
 
-  let video = document.getElementById('videoPlayer');
-  
-  if (hls) { hls.destroy(); hls = null; }
+  let video = document.getElementById('playerVideo');
 
-  if (Hls.isSupported()) {
-    hls = new Hls();
-    hls.loadSource(url);
-    hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    video.src = url;
-    video.play();
+  if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
+
+  if (Hls.isSupported() && url.includes('.m3u8')) {
+    hlsPlayer = new Hls();
+    hlsPlayer.loadSource(url);
+    hlsPlayer.attachMedia(video);
+    hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => video.play());
   } else {
     video.src = url;
     video.play();
   }
 }
 
-// ===== FERMER LECTEUR =====
 function fermerLecteur() {
-  let video = document.getElementById('videoPlayer');
+  document.getElementById('playerOverlay').classList.remove('show');
+  let video = document.getElementById('playerVideo');
   video.pause();
   video.src = '';
-  if (hls) { hls.destroy(); hls = null; }
-  document.getElementById('playerOverlay').classList.remove('show');
+  if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
+}
+
+function fermerSerie() {
+  document.getElementById('serieModal').classList.remove('show');
 }
 
 // ===== EPG =====
-function chargerEPG() {
-  let url = PROXY + encodeURIComponent(`http://${SERVER}/player_api.php?username=${USER}&password=${PASS}&action=get_simple_data_table&stream_id=epg`);
-  
-  fetch(url)
-    .then(r => r.json())
-    .then(data => {
-      if (data && data.epg_listings) {
-        let now = Date.now() / 1000;
-        data.epg_listings.forEach(e => {
-          if (e.start <= now && e.stop >= now) {
-            epgData[e.channel_id] = epgData[e.channel_id] || {};
-            epgData[e.channel_id].now = atob(e.title || '');
-          }
-        });
-      }
-    })
-    .catch(() => {});
-
-  // Rafraîchir EPG toutes les 5 minutes
+async function chargerEPG() {
+  try {
+    let url = PROXY + encodeURIComponent(`http://${SERVER}:${PORT}/player_api.php?username=${USER}&password=${PASS}&action=get_short_epg&limit=2`);
+    let r = await fetch(url);
+    let data = await r.json();
+    if (data.epg_listings) {
+      data.epg_listings.forEach(e => {
+        try { epgData[e.channel_id] = atob(e.title); } catch(x) {}
+      });
+    }
+  } catch(e) {}
   setTimeout(chargerEPG, 5 * 60 * 1000);
 }
+
+// ===== UTILS =====
+function escQ(s) { return (s||'').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
+
+document.getElementById('codeInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') valider();
+});
 
 // ===== DÉCONNEXION =====
 function deconnecter() {
@@ -612,17 +538,6 @@ function deconnecter() {
   document.getElementById('loginError').textContent = '';
   fermerLecteur();
 }
-
-// ===== UTILS =====
-function escapeQ(str) {
-  return (str || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
-}
-
-// Enter pour login
-document.getElementById('codeInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') valider();
-});
 </script>
-
 </body>
 </html>
