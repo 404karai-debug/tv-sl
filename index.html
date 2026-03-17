@@ -258,7 +258,7 @@ async function valider() {
     console.log("Auth response:", data);
 
     // Accepter si user_info présent (même auth=0 parfois)
-    if (data && data.user_info) {
+    if (data.user_info) {
       lancerApp();
     } else {
       document.getElementById('loginError').textContent = "❌ Username incorrect !";
