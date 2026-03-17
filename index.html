@@ -468,13 +468,29 @@ function ouvrirLecteur(url, titre) {
   let video = document.getElementById('playerVideo');
   if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
 
-  if (Hls.isSupported() && url.includes('.m3u8')) {
-    hlsPlayer = new Hls();
-    hlsPlayer.loadSource(url);
+  // Passer le stream via proxy
+  let urlProxied = PROXY + encodeURIComponent(url);
+
+  if (Hls.isSupported()) {
+    hlsPlayer = new Hls({
+      xhrSetup: function(xhr, url) {
+        // Si l'url n'est pas déjà proxifiée, on la proxifie
+        if (!url.startsWith('https://api.codetabs.com')) {
+          xhr.open('GET', PROXY + encodeURIComponent(url), true);
+        }
+      }
+    });
+    hlsPlayer.loadSource(urlProxied);
     hlsPlayer.attachMedia(video);
     hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+    hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
+      console.error('HLS error', data);
+    });
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = urlProxied;
+    video.play();
   } else {
-    video.src = url;
+    video.src = urlProxied;
     video.play();
   }
 }
