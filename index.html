@@ -473,16 +473,16 @@ function ouvrirLecteur(url, titre) {
   let isTS = url.includes('.ts');
 
   if (isMP4 || isTS) {
-    // Lecture directe via proxy
     video.src = urlProxied;
     video.play();
   } else if (Hls.isSupported()) {
-    // Stream HLS (.m3u8)
     hlsPlayer = new Hls({
-      xhrSetup: function(xhr, url) {
-        if (!url.startsWith('https://api.codetabs.com')) {
-          xhr.open('GET', PROXY + encodeURIComponent(url), true);
-        }
+      xhrSetup: function(xhr, reqUrl) {
+        // Toujours proxifier toutes les requêtes HLS
+        let finalUrl = reqUrl.startsWith('http') 
+          ? PROXY + encodeURIComponent(reqUrl) 
+          : reqUrl;
+        xhr.open('GET', finalUrl, true);
       }
     });
     hlsPlayer.loadSource(urlProxied);
@@ -491,7 +491,6 @@ function ouvrirLecteur(url, titre) {
     hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
       console.error('HLS error', data);
       if (data.fatal) {
-        // Fallback lecture directe
         video.src = urlProxied;
         video.play();
       }
@@ -501,6 +500,7 @@ function ouvrirLecteur(url, titre) {
     video.play();
   }
 }
+
 
 
 function fermerLecteur() {
