@@ -86,6 +86,8 @@ function valider() {
 
   g_user = code;
 
+  document.getElementById('error').textContent = "⏳ Connexion...";
+
   let url = `https://corsproxy.io/?http://${g_server}/player_api.php?username=${g_user}&password=${g_pass}`;
 
   fetch(url)
@@ -100,7 +102,7 @@ function valider() {
       }
     })
     .catch(() => {
-      document.getElementById('error').textContent = "❌ Erreur connexion !";
+      document.getElementById('error').textContent = "❌ Erreur connexion serveur !";
     });
 }
 
