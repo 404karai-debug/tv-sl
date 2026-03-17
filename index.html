@@ -231,14 +231,14 @@ body { background: #0d0d0d; color: #fff; font-family: Arial, sans-serif; }
 const SERVER = "usica.online";
 const PORT = "80";
 const PASS = "1593574628";
-const PROXY = "https://thingproxy.freeboard.io/fetch/";
+const PROXY = "https://corsproxy.io/?";
 
 let USER = "";
 let currentMode = "tv";
 let currentCat = "all";
 let epgData = {};
 let hlsPlayer = null;
-
+  
 // ===== LOGIN =====
 async function valider() {
   let code = document.getElementById('codeInput').value.trim();
@@ -252,7 +252,7 @@ async function valider() {
 
   try {
     let url = PROXY + encodeURIComponent(`http://${SERVER}:${PORT}/player_api.php?username=${USER}&password=${PASS}`);
-    let r = await fetch(url);
+    let r = await fetch(PROXY + encodeURIComponent(urlApi));
     let data = await r.json();
 
     console.log("Auth response:", data);
@@ -297,7 +297,7 @@ async function chargerCategories() {
 
   try {
     let url = PROXY + encodeURIComponent(`http://${SERVER}:${PORT}/player_api.php?username=${USER}&password=${PASS}&action=${action}`);
-    let r = await fetch(url);
+    let r = await fetch(PROXY + encodeURIComponent(urlApi));
     let cats = await r.json();
 
     let html = `<div class="cat-item ${currentCat==='all'?'active':''}" onclick="selectCat('all', this)">📋 Toutes</div>`;
@@ -426,7 +426,7 @@ async function ouvrirSerie(id, nom) {
 
   try {
     let url = PROXY + encodeURIComponent(`http://${SERVER}:${PORT}/player_api.php?username=${USER}&password=${PASS}&action=get_series_info&series_id=${id}`);
-    let r = await fetch(url);
+    let r = await fetch(PROXY + encodeURIComponent(urlApi));
     let data = await r.json();
 
     let saisons = Object.keys(data.episodes || {});
@@ -511,7 +511,7 @@ function fermerSerie() {
 async function chargerEPG() {
   try {
     let url = PROXY + encodeURIComponent(`http://${SERVER}:${PORT}/player_api.php?username=${USER}&password=${PASS}&action=get_short_epg&limit=2`);
-    let r = await fetch(url);
+    let r = await fetch(PROXY + encodeURIComponent(urlApi));
     let data = await r.json();
     if (data.epg_listings) {
       data.epg_listings.forEach(e => {
