@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body {
+  background: #000;
+  color: #fff;
+  font-family: Arial;
+  text-align: center;
+  padding: 20px;
+}
+button {
+  background: #e50000;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  margin: 10px;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 8px;
+  width: 200px;
+}
+button:hover {
+  background: #ff3333;
+}
+h1 {
+  color: #e50000;
+}
+</style>
+</head>
+<body>
+<h1>📺 MA TV IPTV</h1>
+
+<button onclick="jouer('TF1')">📺 TF1</button>
+<button onclick="jouer('M6')">📺 M6</button>
+<button onclick="jouer('France2')">📺 France 2</button>
+<button onclick="jouer('BFM')">📺 BFM TV</button>
+
+<p id="status">Choisir une chaîne...</p>
+
+<script>
+function jouer(chaine) {
+  document.getElementById('status').textContent = '▶ Lecture : ' + chaine;
+}
+</script>
+
+</body>
+</html>
