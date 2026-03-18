@@ -439,16 +439,35 @@ function ouvrirLecteur(url, titre) {
   const container = document.getElementById('playerContainer');
   container.innerHTML = '';
 
-  const iframe = document.createElement('iframe');
-  iframe.src = `https://player.castr.com/live/?src=${encodeURIComponent(url)}`;
-  iframe.style.width = '100%';
-  iframe.style.height = '100%';
-  iframe.style.border = 'none';
-  iframe.setAttribute('allowfullscreen', true);
-  iframe.setAttribute('allow', 'autoplay; fullscreen');
+  // Proxy HTTPS via ton Worker Cloudflare
+  const proxyUrl = `https://shrill-dew-d231.404karai.workers.dev/?url=${encodeURIComponent(url)}`;
 
-  container.appendChild(iframe);
+  const video = document.createElement('video');
+  video.style.width = '100%';
+  video.style.height = '100%';
+  video.controls = true;
+  video.autoplay = true;
+
+  if (Hls.isSupported()) {
+    const hls = new Hls();
+    hls.loadSource(proxyUrl);
+    hls.attachMedia(video);
+    window._hls = hls;
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = proxyUrl;
+  } else {
+    video.src = proxyUrl;
+  }
+
+  container.appendChild(video);
 }
+
+function fermerLecteur() {
+  document.getElementById('playerOverlay').classList.remove('show');
+  if (window._hls) { window._hls.destroy(); window._hls = null; }
+  document.getElementById('playerContainer').innerHTML = '';
+}
+
 
 
 function fermerLecteur() {
