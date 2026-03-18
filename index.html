@@ -235,9 +235,18 @@ let currentCat = "all";
 let epgData = {};
 let hlsPlayer = null;
 
+// ===== HELPER : est-ce déjà proxifié ? =====
+function isAlreadyProxied(url) {
+  return url.includes('deno.net') || url.includes('sad-heron') || url.includes('corsproxy') || url.includes('allorigins');
+}
+
+function proxify(url) {
+  return isAlreadyProxied(url) ? url : PROXY + encodeURIComponent(url);
+}
+
 // ===== HELPER FETCH =====
 async function apiFetch(urlApi) {
-  let r = await fetch(PROXY + encodeURIComponent(urlApi));
+  let r = await fetch(proxify(urlApi));
   if (!r.ok) throw new Error("HTTP " + r.status);
   return await r.json();
 }
@@ -255,8 +264,6 @@ async function valider() {
 
   try {
     let data = await apiFetch(`http://${SERVER}:${PORT}/player_api.php?username=${USER}&password=${PASS}`);
-    console.log("Auth response:", data);
-
     if (data.user_info) {
       lancerApp();
     } else {
@@ -468,40 +475,42 @@ function ouvrirLecteur(url, titre) {
   let video = document.getElementById('playerVideo');
   if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
 
-  let urlProxied = PROXY + encodeURIComponent(url);
   let isMP4 = url.includes('.mp4') || url.includes('/movie/');
-  let isTS = url.includes('.ts');
+  let isTS  = url.includes('.ts');
 
   if (isMP4 || isTS) {
-    video.src = urlProxied;
+    // Fichiers directs → on proxifie une seule fois
+    video.src = proxify(url);
     video.play();
+
   } else if (Hls.isSupported()) {
+    // HLS → on passe l'URL originale (pas encore proxifiée) à HLS
+    // Le xhrSetup se charge de proxifier chaque requête UNE SEULE FOIS
     hlsPlayer = new Hls({
       xhrSetup: function(xhr, reqUrl) {
-        // Toujours proxifier toutes les requêtes HLS
-        let finalUrl = reqUrl.startsWith('http') 
-          ? PROXY + encodeURIComponent(reqUrl) 
-          : reqUrl;
+        let finalUrl = isAlreadyProxied(reqUrl)
+          ? reqUrl                            // déjà proxifié → on ne retouche pas
+          : PROXY + encodeURIComponent(reqUrl); // URL brute → on proxifie
         xhr.open('GET', finalUrl, true);
       }
     });
-    hlsPlayer.loadSource(urlProxied);
+    hlsPlayer.loadSource(url); // ← URL ORIGINALE, pas proxifiée ici
     hlsPlayer.attachMedia(video);
     hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => video.play());
     hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
       console.error('HLS error', data);
       if (data.fatal) {
-        video.src = urlProxied;
+        // Fallback : lecture directe proxifiée
+        video.src = proxify(url);
         video.play();
       }
     });
+
   } else {
-    video.src = urlProxied;
+    video.src = proxify(url);
     video.play();
   }
 }
-
-
 
 function fermerLecteur() {
   document.getElementById('playerOverlay').classList.remove('show');
