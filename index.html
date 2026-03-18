@@ -440,7 +440,7 @@ function ouvrirLecteur(url, titre) {
   container.innerHTML = '';
 
   const iframe = document.createElement('iframe');
-  iframe.src = `https://www.hlsplayer.net/play?url=${encodeURIComponent(url)}`;
+  iframe.src = `https://player.castr.com/live/?src=${encodeURIComponent(url)}`;
   iframe.style.width = '100%';
   iframe.style.height = '100%';
   iframe.style.border = 'none';
@@ -449,6 +449,7 @@ function ouvrirLecteur(url, titre) {
 
   container.appendChild(iframe);
 }
+
 
 function fermerLecteur() {
   document.getElementById('playerOverlay').classList.remove('show');
