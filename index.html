@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>📺 IPTV</title>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: #0d0d0d; color: #fff; font-family: Arial, sans-serif; }
@@ -120,10 +119,11 @@ body { background: #0d0d0d; color: #fff; font-family: Arial, sans-serif; }
   color: white; font-size: 20px;
   margin-bottom: 15px; text-align: center;
 }
-#playerVideo {
+#playerContainer {
   width: 90vw; max-width: 1200px;
   height: 55vw; max-height: 675px;
   background: #000; border-radius: 10px;
+  overflow: hidden;
 }
 #playerClose {
   margin-top: 15px; padding: 10px 30px;
@@ -208,7 +208,7 @@ body { background: #0d0d0d; color: #fff; font-family: Arial, sans-serif; }
 <!-- LECTEUR -->
 <div id="playerOverlay">
   <div id="playerTitle"></div>
-<div id="playerContainer" style="width:90vw;max-width:1200px;height:55vw;max-height:675px;background:#000;border-radius:10px;"></div>
+  <div id="playerContainer"></div>
   <button id="playerClose" onclick="fermerLecteur()">✖ Fermer</button>
 </div>
 
@@ -223,7 +223,6 @@ body { background: #0d0d0d; color: #fff; font-family: Arial, sans-serif; }
 </div>
 
 <script>
-// ===== CONFIG =====
 const SERVER = "usica.online";
 const PORT = "80";
 const PASS = "1593574628";
@@ -233,35 +232,25 @@ let USER = "";
 let currentMode = "tv";
 let currentCat = "all";
 let epgData = {};
-let hlsPlayer = null;
-
-// ===== HELPER : est-ce déjà proxifié ? =====
-function isAlreadyProxied(url) {
-  return url.includes('deno.net') || url.includes('sad-heron') || url.includes('corsproxy') || url.includes('allorigins');
-}
 
 function proxify(url) {
-  return isAlreadyProxied(url) ? url : PROXY + encodeURIComponent(url);
+  return PROXY + encodeURIComponent(url);
 }
 
-// ===== HELPER FETCH =====
 async function apiFetch(urlApi) {
   let r = await fetch(proxify(urlApi));
   if (!r.ok) throw new Error("HTTP " + r.status);
   return await r.json();
 }
 
-// ===== LOGIN =====
 async function valider() {
   let code = document.getElementById('codeInput').value.trim();
   if (code.length < 2) {
     document.getElementById('loginError').textContent = "❌ Entrez votre username !";
     return;
   }
-
   USER = code;
   document.getElementById('loginError').textContent = "⏳ Connexion...";
-
   try {
     let data = await apiFetch(`http://${SERVER}:${PORT}/player_api.php?username=${USER}&password=${PASS}`);
     if (data.user_info) {
@@ -271,20 +260,17 @@ async function valider() {
       USER = "";
     }
   } catch(e) {
-    console.error(e);
-    document.getElementById('loginError').textContent = "❌ Erreur connexion : " + e.message;
+    document.getElementById('loginError').textContent = "❌ Erreur : " + e.message;
     USER = "";
   }
 }
 
-// ===== LANCER APP =====
 function lancerApp() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appScreen').style.display = 'flex';
   setMode('tv', document.querySelector('.nav-btn'));
 }
 
-// ===== NAVIGATION =====
 function setMode(mode, btn) {
   currentMode = mode;
   currentCat = "all";
@@ -293,26 +279,20 @@ function setMode(mode, btn) {
   chargerCategories();
 }
 
-// ===== CATÉGORIES =====
 async function chargerCategories() {
   document.getElementById('catList').innerHTML = '<div style="padding:15px;color:#aaa">⏳</div>';
-
   let action = currentMode === 'tv' ? 'get_live_categories'
              : currentMode === 'films' ? 'get_vod_categories'
              : 'get_series_categories';
-
   try {
     let cats = await apiFetch(`http://${SERVER}:${PORT}/player_api.php?username=${USER}&password=${PASS}&action=${action}`);
-
     let html = `<div class="cat-item ${currentCat==='all'?'active':''}" onclick="selectCat('all', this)">📋 Toutes</div>`;
     cats.forEach(c => {
       html += `<div class="cat-item" onclick="selectCat('${c.category_id}', this)">${c.category_name}</div>`;
     });
     document.getElementById('catList').innerHTML = html;
-
     chargerContenu();
     if (currentMode === 'tv') chargerEPG();
-
   } catch(e) {
     document.getElementById('catList').innerHTML = '<div style="padding:15px;color:#f66">❌ Erreur</div>';
   }
@@ -325,28 +305,23 @@ function selectCat(id, el) {
   chargerContenu();
 }
 
-// ===== CONTENU =====
 async function chargerContenu() {
   document.getElementById('contentArea').innerHTML = '<div id="loader">⏳ Chargement...</div>';
-
   let action = currentMode === 'tv' ? 'get_live_streams'
              : currentMode === 'films' ? 'get_vod_streams'
              : 'get_series';
-
   let urlApi = `http://${SERVER}:${PORT}/player_api.php?username=${USER}&password=${PASS}&action=${action}`;
   if (currentCat !== 'all') urlApi += `&category_id=${currentCat}`;
-
   try {
     let items = await apiFetch(urlApi);
     if (currentMode === 'tv') afficherTV(items);
     else if (currentMode === 'films') afficherFilms(items);
     else afficherSeries(items);
   } catch(e) {
-    document.getElementById('contentArea').innerHTML = `<div style="padding:40px;color:#f66">❌ Erreur: ${e.message}</div>`;
+    document.getElementById('contentArea').innerHTML = `<div style="padding:40px;color:#f66">❌ ${e.message}</div>`;
   }
 }
 
-// ===== TV =====
 function afficherTV(items) {
   if (!items.length) { document.getElementById('contentArea').innerHTML = '<div style="padding:40px;color:#aaa">Aucune chaîne</div>'; return; }
   let html = '<div class="list">';
@@ -366,7 +341,6 @@ function afficherTV(items) {
   document.getElementById('contentArea').innerHTML = html;
 }
 
-// ===== FILMS =====
 function afficherFilms(items) {
   if (!items.length) { document.getElementById('contentArea').innerHTML = '<div style="padding:40px;color:#aaa">Aucun film</div>'; return; }
   let html = '<div class="grid">';
@@ -385,7 +359,6 @@ function afficherFilms(items) {
   document.getElementById('contentArea').innerHTML = html;
 }
 
-// ===== SERIES =====
 function afficherSeries(items) {
   if (!items.length) { document.getElementById('contentArea').innerHTML = '<div style="padding:40px;color:#aaa">Aucune série</div>'; return; }
   let html = '<div class="grid">';
@@ -404,43 +377,35 @@ function afficherSeries(items) {
   document.getElementById('contentArea').innerHTML = html;
 }
 
-// ===== JOUER LIVE =====
 function jouerLive(id, nom) {
   let url = `http://${SERVER}:${PORT}/live/${USER}/${PASS}/${id}.m3u8`;
   ouvrirLecteur(url, nom);
 }
 
-// ===== JOUER FILM =====
 function jouerFilm(id, nom) {
   let url = `http://${SERVER}:${PORT}/movie/${USER}/${PASS}/${id}.mp4`;
   ouvrirLecteur(url, nom);
 }
 
-// ===== SERIE =====
 async function ouvrirSerie(id, nom) {
   document.getElementById('serieTitre').textContent = nom;
   document.getElementById('serieSaisons').innerHTML = '⏳ Chargement...';
   document.getElementById('serieEpisodes').innerHTML = '';
   document.getElementById('serieModal').classList.add('show');
-
   try {
     let data = await apiFetch(`http://${SERVER}:${PORT}/player_api.php?username=${USER}&password=${PASS}&action=get_series_info&series_id=${id}`);
-
     let saisons = Object.keys(data.episodes || {});
     if (!saisons.length) {
       document.getElementById('serieSaisons').innerHTML = '<p style="color:#aaa">Aucun épisode</p>';
       return;
     }
-
     let html = '<div style="margin-bottom:15px">';
     saisons.forEach(s => {
       html += `<button class="season-btn" onclick="afficherEpisodes(this, ${JSON.stringify(data.episodes[s])}, '${escQ(nom)}')">${s}</button>`;
     });
     html += '</div>';
     document.getElementById('serieSaisons').innerHTML = html;
-
     afficherEpisodes(document.querySelector('.season-btn'), data.episodes[saisons[0]], nom);
-
   } catch(e) {
     document.getElementById('serieSaisons').innerHTML = `<p style="color:#f66">❌ ${e.message}</p>`;
   }
@@ -449,7 +414,6 @@ async function ouvrirSerie(id, nom) {
 function afficherEpisodes(btn, episodes, nomSerie) {
   document.querySelectorAll('.season-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-
   let html = '';
   episodes.forEach(ep => {
     html += `
@@ -467,42 +431,34 @@ function jouerEpisode(id, nom, ext) {
   ouvrirLecteur(url, nom);
 }
 
-// ===== LECTEUR =====
+// ===== LECTEUR IFRAME =====
 function ouvrirLecteur(url, titre) {
   document.getElementById('playerTitle').textContent = titre;
   document.getElementById('playerOverlay').classList.add('show');
 
   const container = document.getElementById('playerContainer');
-  
-  // Vide le container
   container.innerHTML = '';
 
-  // Essai direct avec iframe
   const iframe = document.createElement('iframe');
   iframe.src = `https://www.hlsplayer.net/play?url=${encodeURIComponent(url)}`;
-  iframe.width = '100%';
-  iframe.height = '100%';
+  iframe.style.width = '100%';
+  iframe.style.height = '100%';
   iframe.style.border = 'none';
-  iframe.allowFullscreen = true;
-  iframe.allow = 'autoplay; fullscreen';
-  
+  iframe.setAttribute('allowfullscreen', true);
+  iframe.setAttribute('allow', 'autoplay; fullscreen');
+
   container.appendChild(iframe);
 }
 
-
 function fermerLecteur() {
   document.getElementById('playerOverlay').classList.remove('show');
-  let video = document.getElementById('playerVideo');
-  video.pause();
-  video.src = '';
-  if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
+  document.getElementById('playerContainer').innerHTML = '';
 }
 
 function fermerSerie() {
   document.getElementById('serieModal').classList.remove('show');
 }
 
-// ===== EPG =====
 async function chargerEPG() {
   try {
     let data = await apiFetch(`http://${SERVER}:${PORT}/player_api.php?username=${USER}&password=${PASS}&action=get_short_epg&limit=2`);
@@ -515,14 +471,12 @@ async function chargerEPG() {
   setTimeout(chargerEPG, 5 * 60 * 1000);
 }
 
-// ===== UTILS =====
 function escQ(s) { return (s||'').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
 
 document.getElementById('codeInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') valider();
 });
 
-// ===== DÉCONNEXION =====
 function deconnecter() {
   USER = '';
   document.getElementById('appScreen').style.display = 'none';
