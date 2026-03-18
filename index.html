@@ -475,42 +475,26 @@ function ouvrirLecteur(url, titre) {
   let video = document.getElementById('playerVideo');
   if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
 
-  let isMP4 = url.includes('.mp4') || url.includes('/movie/');
-  let isTS  = url.includes('.ts');
+  let urlProxied = proxify(url);
 
-  if (isMP4 || isTS) {
-    // Fichiers directs → on proxifie une seule fois
-    video.src = proxify(url);
-    video.play();
-
-  } else if (Hls.isSupported()) {
-    // HLS → on passe l'URL originale (pas encore proxifiée) à HLS
-    // Le xhrSetup se charge de proxifier chaque requête UNE SEULE FOIS
-    hlsPlayer = new Hls({
-      xhrSetup: function(xhr, reqUrl) {
-        let finalUrl = isAlreadyProxied(reqUrl)
-          ? reqUrl                            // déjà proxifié → on ne retouche pas
-          : PROXY + encodeURIComponent(reqUrl); // URL brute → on proxifie
-        xhr.open('GET', finalUrl, true);
-      }
-    });
-    hlsPlayer.loadSource(url); // ← URL ORIGINALE, pas proxifiée ici
+  if (Hls.isSupported()) {
+    hlsPlayer = new Hls();  // Plus besoin de xhrSetup, le Deno gère tout
+    hlsPlayer.loadSource(urlProxied);
     hlsPlayer.attachMedia(video);
     hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => video.play());
     hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
       console.error('HLS error', data);
       if (data.fatal) {
-        // Fallback : lecture directe proxifiée
-        video.src = proxify(url);
+        video.src = urlProxied;
         video.play();
       }
     });
-
   } else {
-    video.src = proxify(url);
+    video.src = urlProxied;
     video.play();
   }
 }
+
 
 function fermerLecteur() {
   document.getElementById('playerOverlay').classList.remove('show');
