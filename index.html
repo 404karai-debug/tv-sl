@@ -208,7 +208,7 @@ body { background: #0d0d0d; color: #fff; font-family: Arial, sans-serif; }
 <!-- LECTEUR -->
 <div id="playerOverlay">
   <div id="playerTitle"></div>
-  <video id="playerVideo" controls autoplay></video>
+<div id="playerContainer" style="width:90vw;max-width:1200px;height:55vw;max-height:675px;background:#000;border-radius:10px;"></div>
   <button id="playerClose" onclick="fermerLecteur()">✖ Fermer</button>
 </div>
 
@@ -472,27 +472,21 @@ function ouvrirLecteur(url, titre) {
   document.getElementById('playerTitle').textContent = titre;
   document.getElementById('playerOverlay').classList.add('show');
 
-  let video = document.getElementById('playerVideo');
-  if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
+  const container = document.getElementById('playerContainer');
+  
+  // Vide le container
+  container.innerHTML = '';
 
-  let urlProxied = proxify(url);
-
-  if (Hls.isSupported()) {
-    hlsPlayer = new Hls();  // Plus besoin de xhrSetup, le Deno gère tout
-    hlsPlayer.loadSource(urlProxied);
-    hlsPlayer.attachMedia(video);
-    hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-    hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
-      console.error('HLS error', data);
-      if (data.fatal) {
-        video.src = urlProxied;
-        video.play();
-      }
-    });
-  } else {
-    video.src = urlProxied;
-    video.play();
-  }
+  // Essai direct avec iframe
+  const iframe = document.createElement('iframe');
+  iframe.src = `https://www.hlsplayer.net/play?url=${encodeURIComponent(url)}`;
+  iframe.width = '100%';
+  iframe.height = '100%';
+  iframe.style.border = 'none';
+  iframe.allowFullscreen = true;
+  iframe.allow = 'autoplay; fullscreen';
+  
+  container.appendChild(iframe);
 }
 
 
